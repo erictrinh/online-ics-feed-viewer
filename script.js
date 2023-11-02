@@ -16,20 +16,30 @@ const value_type_mapping = {
 
 function load_ics(ics_data) {
   const parsed = ICAL.parse(ics_data);
-  const events = parsed[2].map(([type, event_fields]) => {
-    if (type !== "vevent") return;
-    return event_fields.reduce((event, field) => {
-      const [original_key, _, type, original_value] = field;
-      const key =
-        original_key in mapping ? mapping[original_key] : original_key;
-      const value =
-        type in value_type_mapping
-          ? value_type_mapping[type](original_value)
-          : original_value;
-      event[key] = value;
-      return event;
-    }, {});
-  });
+
+  const events = parsed[2]
+    .map(([type, event_fields]) => {
+      if (type !== "vevent") return;
+      return event_fields.reduce((event, field) => {
+        const [original_key, _, type, original_value] = field;
+        const key =
+          original_key in mapping ? mapping[original_key] : original_key;
+        const value =
+          type in value_type_mapping
+            ? value_type_mapping[type](original_value)
+            : original_value;
+        event[key] = value;
+        return event;
+      }, {});
+    })
+    .map((e) => {
+      // show events in local time
+      return {
+        ...e,
+        start: window.moment(e.start).local().format(),
+        end: window.moment(e.end).local().format(),
+      };
+    });
   $("#calendar").fullCalendar("removeEventSources");
   $("#calendar").fullCalendar("addEventSource", events);
 }
@@ -84,7 +94,7 @@ $(document).ready(function () {
   const url_file = URIHash.get("file");
   const url_cors = URIHash.get("cors") === "true";
   const url_title = URIHash.get("title");
-  const url_hideinput = URIHash.get("hideinput") === 'true';
+  const url_hideinput = URIHash.get("hideinput") === "true";
   console.log({
     url_feed,
     url_file,
@@ -110,9 +120,9 @@ $(document).ready(function () {
   if (url_hideinput) {
     $("body").addClass("from_url");
   }
-  $('#share input').click(function(){
+  $("#share input").click(function () {
     if ($("#cors-enabled").is(":checked")) {
-      URIHash.set('hideinput', 'true')
+      URIHash.set("hideinput", "true");
     }
   });
   $("#fetch").click(function () {
