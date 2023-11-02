@@ -1,4 +1,4 @@
-const cors_anywhere_url = "https://larrybolt-cors-anywhere.herokuapp.com/";
+const cors_anywhere_url = "https://corsproxy.io/?";
 const mapping = {
   dtstart: "start",
   dtend: "end",
